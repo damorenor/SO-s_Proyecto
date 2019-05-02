@@ -1,16 +1,19 @@
 //damorenor + joacarrilloco
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#define SIZE 1e8;
+
+#define REGISTER_SIZE int(1e8 + 10)
+#define NOMBRE_SIZE 32
+#define TIPO_SIZE 32
+#define RAZA_SIZE 16
 
 //Estructura que almacena la info de la mascota
 struct dogType
 {
-	char nombre [32];
-	char tipo [32];
+	char nombre [NOMBRE_SIZE];
+	char tipo [TIPO_SIZE];
 	int edad;
-	char raza [16];
+	char raza [RAZA_SIZE];
 	int estatura;
 	float peso;
 	char sexo;
@@ -18,8 +21,8 @@ struct dogType
 
 typedef struct dogType pet;//Se define tipo de dato pa ahorrar codigo :D
 
-//Inicialización del registro de mascotas
-void buildRegister(){
+//Inicialización del registro de mascotas y carga de datos necesarios
+void init(){
 	printf("Se creó el registro\n");
 }
 
@@ -38,7 +41,20 @@ void menu(){
 	//Se recibe por teclado un entero que corresponde a la funcionalidad escogida
 	short option;
 	scanf("%hd",&option);
-	exit(-1);
+	switch(option){
+		case 1:
+		enterPet();
+		case 2:
+		seePet();
+		case 3:
+		deletePet();
+		case 4:
+		searchPet();
+		case 5:
+		exit(-1);
+		default:
+		printf("ingrese una opción valida\n");
+	}	
 }
 
 //Ejecución permanente del programa
@@ -51,7 +67,7 @@ void run(){
 //main
 int main(int argc, char const *argv[])
 {
-	buildRegister();
+	init();
 	run();
 	return 0;
 }
