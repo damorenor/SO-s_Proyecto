@@ -1,4 +1,4 @@
-//damorenor + jocarrilloco
+//damorenor + joacarrilloco
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
