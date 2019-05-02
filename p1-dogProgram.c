@@ -28,7 +28,8 @@ void menu(){
 	//Se imprime en consola el menú de usuario
 	system("clear");
 	printf("\t\t\tVET CLINIC :3\n"
-			"\t1.\tIngresar Registro\n\n\n"
+			"est.2019\n\n\n"
+			"\t1.\tIngresar Registro\n"
 			"\t2.\tVer Registro\t\n"
 			"\t3.\tBorrar Registro\n"
 			"\t4.\tBuscar Registro\n"
@@ -37,6 +38,7 @@ void menu(){
 	//Se recibe por teclado un entero que corresponde a la funcionalidad escogida
 	short option;
 	scanf("%hd",&option);
+	exit(-1);
 }
 
 //Ejecución permanente del programa
