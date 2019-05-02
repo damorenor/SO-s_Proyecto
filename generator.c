@@ -4,10 +4,12 @@
 #include <time.h>
 #include <string.h>
 
-#define REGISTER_SIZE int(1e8 + 10)
+#define REGISTER_SIZE ( (int) 1e7 ) 
 #define NOMBRE_SIZE 32
 #define TIPO_SIZE 32
 #define RAZA_SIZE 16
+#define TOTAL_NAMES 1716
+#define TOTAL_BREEDS 13
 
 //Estructura que almacena la info de la mascota
 struct dogType
@@ -22,7 +24,64 @@ struct dogType
 };
 
 
-char mainNames [171827][32];
+char mainNames [TOTAL_NAMES][NOMBRE_SIZE]; 
+
+void nameArrayGenerator(){
+	FILE *names;
+	names = fopen("dataNames.dat","r");
+	if(names == NULL){
+		perror("error open de dataNames");
+		exit(-1);
+	}
+	int check;
+	char buffer[NOMBRE_SIZE];
+	for(int i=0;i<TOTAL_NAMES;i++){
+		check = fseek(names,sizeof(buffer)*i,SEEK_SET);
+		if(check == -1){
+			perror("error seek dataNames");
+			exit(-1);
+		}
+
+		check = fread(&buffer,sizeof(buffer),1,names);
+		if(check == 0){
+			perror("error lectura de dataNames");
+			exit(-1);
+		}
+
+		strcpy(mainNames[i], buffer);
+	}
+	fclose(names);
+}
+
+char mainBreeds [TOTAL_BREEDS][RAZA_SIZE];
+
+void breedArrayGenerator(){
+        FILE *breeds;
+        breeds = fopen("dataBreeds.dat","r");
+        if(breeds == NULL){
+                perror("error open de dataBreeds");
+                exit(-1);
+        }
+        int check;
+        char buffer[RAZA_SIZE];
+        for(int i=0;i<TOTAL_BREEDS;i++){
+                check = fseek(breeds,sizeof(buffer)*i,SEEK_SET);
+                if(check == -1){
+                        perror("error seek dataBreeds");
+                        exit(-1);
+                }
+
+                check = fread(&buffer,sizeof(buffer),1,breeds);
+                if(check == 0){
+                        perror("error lectura de dataBreeds");
+                        exit(-1);
+                }
+
+                strcpy(mainBreeds[i], buffer);
+        }
+        fclose(breeds);
+}
+
 
 void guardar ( FILE *f, void *ap )
 {
@@ -41,7 +100,12 @@ void guardar ( FILE *f, void *ap )
 
 
 int main()
-{
+{	
+	srand( time( NULL ) );
+
+	nameArrayGenerator();
+	breedArrayGenerator();
+
 	FILE *f;
 	f = fopen("dataDogs.dat", "w+");
 
@@ -52,8 +116,6 @@ int main()
 	}
 
 
-	srand( time( NULL ) );
-	
 	struct dogType * perro;
 	perro = ( struct  dogType *) malloc( sizeof ( struct dogType ) );	
 	
@@ -64,29 +126,28 @@ int main()
 	}
 
 	int i;
-	for( i = 0; i < 10; ++ i )
+	for( i = 0; i < REGISTER_SIZE; ++ i )
 	{
-		strcpy( perro -> nombre, "la mama de more" );		
+		strcpy( perro -> nombre, mainNames[ rand()%TOTAL_NAMES ] );
 		strcpy( perro -> tipo, "perro" );		
 		perro -> edad = rand() % 18; 	
-		strcpy( perro -> raza, "aun no c" );
+		strcpy( perro -> raza, mainBreeds[ rand()%TOTAL_BREEDS ] );
 		perro -> estatura  = 50 + rand()% 51; 
 		perro -> peso = 10.0 + 20.0 * ( (float) rand() / RAND_MAX );	
 		perro -> sexo = ( rand() % 2 ) ? 'H' : 'M' ;
 
 
-		printf("%s\n", perro -> nombre );
-		printf("%s\n", perro -> tipo );
-		printf("%d\n", perro -> edad );
-		printf("%s\n", perro -> raza );
-		printf("%d\n", perro -> estatura );
-		printf("%f\n", perro -> peso );
-		printf("%c\n", perro -> sexo );
-		printf("\n\n" );
+	//	printf("NOMBRE: %s\n", perro -> nombre );
+	//	printf("TIPO: %s\n", perro -> tipo );
+	//	printf("EDAD: %d\n", perro -> edad );
+	//	printf("RAZA: %s\n", perro -> raza );
+	//	printf("ESTATURA: %d\n", perro -> estatura );
+	//	printf("PESO: %f\n", perro -> peso );
+	//	printf("SEXO: %c\n", perro -> sexo );
+	//	printf("\n\n" );
 
 		guardar( f, perro );	
 	}	
-
 
 	fclose( f );
 	return 0;
