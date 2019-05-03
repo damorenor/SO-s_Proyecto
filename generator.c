@@ -11,21 +11,53 @@
 #define TOTAL_NAMES 1716
 #define TOTAL_BREEDS 13
 
+#define HASH_SIZE 1007 
+#define MOD 256
+
+
 //Estructura que almacena la info de la mascota
 struct dogType
 {
-        char nombre [NOMBRE_SIZE];
+        unsigned char nombre [NOMBRE_SIZE];
         char tipo [TIPO_SIZE];
         int edad;
         char raza [RAZA_SIZE];
         int estatura;
         float peso;
         char sexo;
+
+	int idPrev;
 };
 
+int getHash( unsigned char * nombre )
+{
+	int hash, base, i;
 
-char mainNames [TOTAL_NAMES][NOMBRE_SIZE]; 
+	printf("%s\n", nombre );
+	for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
+	{
+		
+		hash += ( nombre[i] ) * base;
 
+	//	printf("%d\n", (int) nombre[i] );
+	//	printf("%c\n", nombre[i] );
+
+		base *= MOD;
+
+
+		base %= HASH_SIZE;
+		hash %= HASH_SIZE;
+	       
+		//printf("%d\n\n", hash );
+		if( hash < 0 ) 
+			exit( -1 );
+	}
+
+	return hash;
+}
+
+
+unsigned char ** mainNames;
 void nameArrayGenerator(){
 	FILE *names;
 	names = fopen("dataNames.dat","r");
@@ -98,17 +130,19 @@ void guardar ( FILE *f, void *ap )
 	}
 }
 
+//guarda dinamicamente el id del ultimo prrro que tiene dicho Hash
+int lastID[HASH_SIZE]; 
+
+
 
 int main()
 {	
 	srand( time( NULL ) );
 
-	nameArrayGenerator();
 	breedArrayGenerator();
 
 	FILE *f;
 	f = fopen("dataDogs.dat", "w+");
-
 	if( f == NULL )
 	{
 		perror("error abriendo archivo principal");
@@ -118,17 +152,64 @@ int main()
 
 	struct dogType * perro;
 	perro = ( struct  dogType *) malloc( sizeof ( struct dogType ) );	
-	
 	if( perro == NULL )
 	{
 		perror("error en el malloc");
 		exit( -1 );
 	}
 
+
+	int * cnH;
+        cnH = ( int * ) malloc ( HASH_SIZE * sizeof ( int ) );
+	if( cnH == NULL )
+	{
+		perror("error en el malloc cnH" );
+		exit( -1 );
+	}
+	memset( cnH, 0, HASH_SIZE * sizeof ( int ) );
+
+
+
+	mainNames = ( unsigned char ** ) malloc( TOTAL_NAMES * sizeof ( unsigned char * ) );
+	if( mainNames == NULL )
+	{
+		perror("error en el malloc de mainNames");
+		exit(-1);
+	}
 	int i;
+	for( i = 0; i < TOTAL_NAMES; ++ i )
+	{
+		mainNames[i] = (unsigned char * ) malloc ( NOMBRE_SIZE * sizeof ( unsigned char ) );
+		if( mainNames[i] == NULL )
+		{
+			perror("error en el malloc de mainNames");
+			exit(-1);
+		}
+		memset( mainNames[i], 0, NOMBRE_SIZE * sizeof ( unsigned char ) );
+	}
+
+	memset( lastID, -1, sizeof ( lastID ) );
+
+	nameArrayGenerator();
+	for( i = 0; i < TOTAL_NAMES; ++ i )
+	{
+		
+		printf("%s\n", mainNames[i] );	
+		for( int j = 0; j < 32; ++ j )
+		{
+			printf("%d ", (int) mainNames[i][j] );
+
+		}
+
+		printf("\n%d", getHash( mainNames[i] ) );
+		printf("\n\n");
+	}	
+
+	exit( 0 );	
 	for( i = 0; i < REGISTER_SIZE; ++ i )
 	{
-		strcpy( perro -> nombre, mainNames[ rand()%TOTAL_NAMES ] );
+
+		strcpy( perro -> nombre, mainNames[ i%TOTAL_NAMES] );
 		strcpy( perro -> tipo, "perro" );		
 		perro -> edad = rand() % 18; 	
 		strcpy( perro -> raza, mainBreeds[ rand()%TOTAL_BREEDS ] );
@@ -136,8 +217,27 @@ int main()
 		perro -> peso = 10.0 + 20.0 * ( (float) rand() / RAND_MAX );	
 		perro -> sexo = ( rand() % 2 ) ? 'H' : 'M' ;
 
+	
+		int h;
 
-	//	printf("NOMBRE: %s\n", perro -> nombre );
+//		for( int i = 0; i < NOMBRE_SIZE; ++ i )
+//		{
+//			printf("%d\n", (int) perro -> nombre[i] );
+//		}
+//		printf("\n\n");
+		printf("%d\n", i );
+
+		h = getHash( perro -> nombre );
+		
+	//	printf("%d\n", h );
+		
+//		++cnH[h];
+//	exit ( 0 ) ;
+	//	perro -> idPrev = lastID[h];
+//		lastID[h] = i;
+	
+       // 	printf("NOMBRE: %s\n", perro -> nombre );
+	//	printf("%d\n\n", h );
 	//	printf("TIPO: %s\n", perro -> tipo );
 	//	printf("EDAD: %d\n", perro -> edad );
 	//	printf("RAZA: %s\n", perro -> raza );
@@ -146,9 +246,19 @@ int main()
 	//	printf("SEXO: %c\n", perro -> sexo );
 	//	printf("\n\n" );
 
-		guardar( f, perro );	
+	//	guardar( f, perro );	
 	}	
-
+	
+	int sum = 0;	
+	int mx = 0;	
+	for( i = 0; i < HASH_SIZE; ++ i )
+	{
+		if( cnH[i] > mx )
+			mx = cnH[i];	
+		sum += cnH[i];
+		printf("%d\n", cnH[i] );
+	}
+	printf("%d\n", mx );
 	fclose( f );
 	return 0;
 }
