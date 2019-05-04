@@ -39,7 +39,7 @@ void nameArrayGenerator();
 void breedArrayGenerator();
 int getHash( unsigned char * nombre );
 void saveDog( void *ap );
-void savePointers();
+void saveHeads();
 
 
 int main()
@@ -82,30 +82,25 @@ int main()
 		saveDog( perro );	
 	}	
 
-	savePointers();
+	saveHeads();
 
 	fclose( f );
 	return 0;
 }
 
-void savePointers(){
-		FILE *points;
-		int  check;
+void saveHeads(){
+	FILE *points;
+	int  check;
 
-		points = fopen("dataPointers.dat","w+");
-		if(points == NULL){
-			perror("error generando apuntadores");
-			exit(-1);
-		}
-
-		for (int i = 0; i < HASH_SIZE; ++i){
-			check = fwrite(&lastID[i], sizeof(int),1,points);
-			if (check == 0){
-				perror("error escribiendo dataPointers");
-			}
-		}
-		fclose(points);
+	points = fopen("dataPointers.dat","w+");
+	if(points == NULL){
+		perror("error generando apuntadores");
+		exit(-1);
 	}
+	
+	fwrite( lastID, HASH_SIZE * sizeof(int), 1, points );
+	fclose(points);
+}
 
 void initPointers()
 {

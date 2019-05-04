@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-
+#include <ctype.h>
+	       		       
 #define REGISTER_SIZE ( (int) 1e7 ) 
 #define NOMBRE_SIZE 32
 #define TIPO_SIZE 32
@@ -29,19 +30,22 @@ struct dogType
 
 
 void initPointers();
-void loadPointers();
-void savePointers();
+void loadHeads();
+void saveHeads();
+
 void enterPet();
 void seePet();
 void deletePet();
 void searchPet();
-int getSize();
+
+int CountRegisters();
 void saveDog();
 int getHash();
+void getMascota();
+void imprimirMascota();
 
 int * lastID;
 FILE *f;
-
 
 //Carga el menu
 void menu(){
@@ -72,7 +76,7 @@ void menu(){
 			searchPet();
 			break;
 		case 5:
-			savePointers();
+			saveHeads();
 			exit( 0 );
 
 		default:
@@ -90,67 +94,9 @@ void run(){
 int main()
 {
 	initPointers();
-	loadPointers();	
+	loadHeads();	
 	run();
 	return 0;
-}
-
-
-void initPointers()
-{
-	lastID = ( int * ) malloc ( HASH_SIZE * sizeof ( int ) );
-	if( lastID == NULL )
-	{
-		perror("error en el malloc lastID" );
-		exit( -1 );
-	}
-        memset( lastID, -1, HASH_SIZE * sizeof ( int ) );
-}
-
-
-void loadPointers()
-{
-	FILE * points;
-	points = fopen("dataPointers.dat", "r" );
-
-	int i, check;
-	for( i = 0; i < HASH_SIZE; ++ i )
-	{
-		check = fseek(points, i * sizeof(int),SEEK_SET);
-		if( check == -1 )
-		{
-			perror("error seek Pointers");
-			exit( -1 );
-		}
-		check = fread(&lastID[i], sizeof(int), 1, points );
-		
-		if( check == 0 )
-		{
-			perror("error en lectura Pointers");
-			exit(-1);
-		}
-	}
-	fclose( points );
-}
-
-
-void savePointers(){
-        FILE *points;
-        int  check;
-
-        points = fopen("dataPointers.dat","w+");
-        if(points == NULL){
-                perror("error generando apuntadores");
-                exit(-1);
-        }
-
-        for (int i = 0; i < HASH_SIZE; ++i){
-                check = fwrite(&lastID[i], sizeof(int),1,points);
-                if (check == 0){
-                        perror("error escribiendo dataPointers");
-                }
-        }
-        fclose(points);
 }
 
 
@@ -165,7 +111,8 @@ void enterPet(){
 		perror("error en el malloc de la mascota");
 		exit( -1 );
 	}
-
+	
+	memset( mascota->nombre, 0, NOMBRE_SIZE * sizeof ( unsigned char ) );
 	printf("ingrese nombre:");
 	scanf("%s",mascota->nombre);
 	printf("\ningrese tipo:");
@@ -184,7 +131,7 @@ void enterPet(){
 
 	int hash = getHash( mascota -> nombre );
 	mascota -> idPrev = lastID[hash];
-	lastID[hash] = getSize();
+	lastID[hash] = CountRegisters();
 
 	saveDog( mascota );
 
@@ -213,10 +160,91 @@ void deletePet()
 void searchPet()
 {
 
+	printf("Ingrese el nombre de la mascota que quiere buscar\n" );
 
+	unsigned char buff[NOMBRE_SIZE];
+	
+	memset( buff, 0, sizeof buff );	
+	scanf("%s", buff );
+
+	
+	int hash, currId, i, equal;
+	hash = getHash( buff );
+	
+	currId = lastID[hash];
+
+	struct dogType * mascota;
+	mascota = ( struct  dogType *) malloc( sizeof ( struct dogType ) );	
+	if( mascota == NULL )
+	{
+		perror("error en el malloc de la mascota");
+		exit( -1 );
+	}
+
+	while( currId != -1 )
+	{
+		getMascota( currId, mascota );
+		
+		equal = 1;
+		for( i = 0; i < NOMBRE_SIZE; ++ i )
+		{
+			if( mascota->nombre[i] != buff[i] ) // hay que cambiarlo
+				equal = 0;
+		}	
+		
+		if( equal )
+			imprimirMascota( mascota );	
+		currId = mascota -> idPrev;
+	}
+
+
+	printf("\nBusqueda finalizada presione enter para continuar");
+	char end;
+	scanf("%s",&end);
 }
 
-int getSize(){
+void imprimirMascota( struct dogType * mascota )
+{
+
+	printf("NOMBRE: %s\n", mascota -> nombre );
+	printf("TIPO: %s\n", mascota -> tipo );
+	printf("EDAD: %d\n", mascota -> edad );
+	printf("RAZA: %s\n", mascota -> raza );
+	printf("ESTATURA: %d\n", mascota -> estatura );
+	printf("PESO: %f\n", mascota -> peso );
+	printf("SEXO: %c\n", mascota -> sexo );
+	printf("\n\n" );
+}
+
+void getMascota( int idx, struct dogType * mascota )
+{
+	FILE *g;
+	int  check, size;
+	g = fopen("dataDogs.dat","r");
+	if(g == NULL){
+		perror("error abriendo archivo (getMascota)");
+		exit(-1);
+	}
+
+	check = fseek(g, idx * sizeof( struct dogType ), SEEK_SET);
+	if (check == -1)
+	{
+		perror("error seek get Mascota");
+		exit( -1 );
+	}
+
+
+	check = fread(mascota, sizeof( struct dogType ),1,g );
+	if ( check == 0 )
+	{
+		perror("error en el read del archivo (getMascota)");
+		exit(-1);
+	}		
+	fclose( g );
+}
+
+
+int CountRegisters(){
 	FILE *g;
 	int  check, size;
 	g = fopen("dataDogs.dat","r");
@@ -229,17 +257,19 @@ int getSize(){
 	if (check == -1)
 	{
 		perror("error seek size archivo");
+		exit( -1 );
 	}
 
 	size = ftell(g);
-	if (check == -1)
+	if (size == -1)
 	{
 		perror("error tell size archivo");
+		exit(-1);
 	}
 
 	fclose(g);
-
-	return size;
+	
+	return size / sizeof ( struct dogType );
 }
 
 void saveDog ( void *ap )
@@ -255,7 +285,7 @@ void saveDog ( void *ap )
 	dato = (struct dogType *) ap;
 
 	int r;
-	r= fseek(f,0L, SEEK_END);
+	r = fseek(f,0L, SEEK_END);
 	if( r == -1 )
 	{
 		perror("error en la escritura de la mascota(seek)");
@@ -267,6 +297,7 @@ void saveDog ( void *ap )
 		perror("error en la escritura en el archivo principal");
 		exit( -1 );
 	}
+	fclose( f );
 }
 
 int getHash( unsigned char * nombre )
@@ -285,4 +316,57 @@ int getHash( unsigned char * nombre )
 
 	return hash;
 }
+
+
+void initPointers()
+{
+	lastID = ( int * ) malloc ( HASH_SIZE * sizeof ( int ) );
+	if( lastID == NULL )
+	{
+		perror("error en el malloc lastID" );
+		exit( -1 );
+	}
+        memset( lastID, -1, HASH_SIZE * sizeof ( int ) );
+}
+
+
+void loadHeads(){
+	FILE * points;
+ 	int check;	 
+	
+	points = fopen("dataPointers.dat", "r");
+	 if(points == NULL){
+                perror("error cargando apuntadores");
+                exit(-1);
+        }
+	
+	check = fread(lastID, HASH_SIZE * sizeof(int), 1, points );
+	if( check == 0 )
+	{
+		perror("error en la lectura de apuntadores");	
+		exit( -1 );
+	}
+	
+	fclose( points );
+}
+
+void saveHeads(){
+        FILE *points;
+        int  check;
+
+        points = fopen("dataPointers.dat","w+");
+        if(points == NULL){
+                perror("error generando apuntadores");
+                exit(-1);
+        }
+
+        check = fwrite( lastID, HASH_SIZE * sizeof(int), 1, points );
+        if( check == 0 )
+	{
+		perror("error en la lectura de apuntadores");	
+		exit( -1 );
+	}
+	fclose(points);
+}
+
 
