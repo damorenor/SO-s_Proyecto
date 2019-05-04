@@ -35,8 +35,12 @@ void enterPet();
 void seePet();
 void deletePet();
 void searchPet();
+int getSize();
+void saveDog();
+int getHash();
 
 int * lastID;
+FILE *f;
 
 
 //Carga el menu
@@ -68,7 +72,6 @@ void menu(){
 			searchPet();
 			break;
 		case 5:
-			
 			savePointers();
 			exit( 0 );
 
@@ -151,9 +154,44 @@ void savePointers(){
 }
 
 
-void enterPet()
-{
+void enterPet(){
+	system("clear");
+	printf("Ingrese porfavor los datos de la mascota:\n\n");
 
+	struct dogType * mascota;
+	mascota = ( struct  dogType *) malloc( sizeof ( struct dogType ) );	
+	if( mascota == NULL )
+	{
+		perror("error en el malloc de la mascota");
+		exit( -1 );
+	}
+
+	printf("ingrese nombre:");
+	scanf("%s",mascota->nombre);
+	printf("\ningrese tipo:");
+	scanf("%s",mascota->tipo);
+	printf("\ningrese edad:");
+	scanf("%d",&mascota->edad);
+	printf("\ningrese raza:");
+	scanf("%s",mascota->raza);
+	printf("\ningrese estatura:");
+	scanf("%d",&mascota->estatura);
+	printf("\ningrese peso:");
+	scanf("%f",&mascota->peso);
+	printf("\ningrese sexo:");
+	scanf("%s",&mascota->sexo);
+	printf("\n\n" );
+
+	int hash = getHash( mascota -> nombre );
+	mascota -> idPrev = lastID[hash];
+	lastID[hash] = getSize();
+
+	saveDog( mascota );
+
+	printf("\nse guardó su mascota... Presione ENTER:");
+	char end;
+	scanf("%s",&end);
+	
 
 }
 
@@ -177,3 +215,74 @@ void searchPet()
 
 
 }
+
+int getSize(){
+	FILE *g;
+	int  check, size;
+	g = fopen("dataDogs.dat","r");
+	if(g == NULL){
+		perror("error abriendo archivo (size)");
+		exit(-1);
+	}
+
+	check = fseek(g,0L, SEEK_END);
+	if (check == -1)
+	{
+		perror("error seek size archivo");
+	}
+
+	size = ftell(g);
+	if (check == -1)
+	{
+		perror("error tell size archivo");
+	}
+
+	fclose(g);
+
+	return size;
+}
+
+void saveDog ( void *ap )
+{
+	f = fopen("dataDogs.dat", "a+");
+	if( f == NULL )
+	{
+		perror("error abriendo archivo principal");
+		exit( -1 );
+	}
+	
+	struct dogType * dato;
+	dato = (struct dogType *) ap;
+
+	int r;
+	r= fseek(f,0L, SEEK_END);
+	if( r == -1 )
+	{
+		perror("error en la escritura de la mascota(seek)");
+		exit( -1 );
+	}
+	r = fwrite( dato, sizeof( struct dogType ), 1, f );
+	if( r == 0 )
+	{
+		perror("error en la escritura en el archivo principal");
+		exit( -1 );
+	}
+}
+
+int getHash( unsigned char * nombre )
+{
+	int hash, base, i;
+
+	for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
+	{
+		hash += ( nombre[i] ) * base;
+
+		base *= MOD;
+		base %= HASH_SIZE;
+
+		hash %= HASH_SIZE;
+	}
+
+	return hash;
+}
+
