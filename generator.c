@@ -29,6 +29,7 @@ struct dogType
 
 
 FILE *f;
+
 unsigned char ** mainNames;
 unsigned char ** mainBreeds;
 int * lastID; 
@@ -38,6 +39,7 @@ void nameArrayGenerator();
 void breedArrayGenerator();
 int getHash( unsigned char * nombre );
 void saveDog( void *ap );
+void savePointers();
 
 
 int main()
@@ -79,11 +81,31 @@ int main()
 
 		saveDog( perro );	
 	}	
-	
+
+	savePointers();
+
 	fclose( f );
 	return 0;
 }
 
+void savePointers(){
+		FILE *points;
+		int  check;
+
+		points = fopen("dataPointers.dat","w+");
+		if(points == NULL){
+			perror("error generando apuntadores");
+			exit(-1);
+		}
+
+		for (int i = 0; i < HASH_SIZE; ++i){
+			check = fwrite(&lastID[i], sizeof(int),1,points);
+			if (check == 0){
+				perror("error escribiendo dataPointers");
+			}
+		}
+		fclose(points);
+	}
 
 void initPointers()
 {
