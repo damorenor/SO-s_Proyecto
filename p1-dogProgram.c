@@ -159,14 +159,14 @@ void deletePet()
 
 void searchPet()
 {
-
-	printf("Ingrese el nombre de la mascota que quiere buscar\n" );
+	system("clear");
+	printf("Ingrese el nombre de la mascota que quiere buscar:\n" );
 
 	unsigned char buff[NOMBRE_SIZE];
 	
 	memset( buff, 0, sizeof buff );	
 	scanf("%s", buff );
-
+	printf("\n");
 	
 	int hash, currId, i, equal;
 	hash = getHash( buff );
@@ -180,7 +180,7 @@ void searchPet()
 		perror("error en el malloc de la mascota");
 		exit( -1 );
 	}
-
+	
 	while( currId != -1 )
 	{
 		getMascota( currId, mascota );
@@ -196,7 +196,6 @@ void searchPet()
 			imprimirMascota( mascota );	
 		currId = mascota -> idPrev;
 	}
-
 
 	printf("\nBusqueda finalizada presione enter para continuar");
 	char end;
