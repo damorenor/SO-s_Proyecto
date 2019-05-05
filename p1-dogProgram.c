@@ -78,6 +78,7 @@ void menu(){
 			searchPet();
 			break;
 		case 5:
+			free(lastID);
 			saveHeads();
 			exit( 0 );
 
@@ -141,7 +142,7 @@ void enterPet(){
 	char end;
 	scanf("%s",&end);
 	
-
+	free(mascota);
 }
 
 
@@ -182,6 +183,8 @@ void seePet(){
 	}	
 
 	system(hcFile);
+
+	free(mascota);
 	printf("\ncambios en la historia clinica realizados... Presione ENTER:");
 	char end;
 	scanf("%s",&end);
@@ -350,6 +353,7 @@ void deletePet()
 	//Re escritura del archivo	
 	
 	FILE * dbTmp;
+	int check;
 	dbTmp = fopen("dbTmp.dat", "a+");
 	
 	int i, tot;
@@ -357,13 +361,39 @@ void deletePet()
 
 	for( i = 0; i < tot; ++ i )
 	{
-		if( i == id ) fwrite ( tmp, sizeof( struct dogType ), 1, dbTmp );
-		else if( i == id2 ) fwrite ( tmp2, sizeof( struct dogType ), 1, dbTmp );
-		else if( i == registerId ) fwrite ( mascotaFinal, sizeof( struct dogType ), 1, dbTmp );
+		if( i == id ){
+			check = fwrite ( tmp, sizeof( struct dogType ), 1, dbTmp );	
+			if (check==0)
+			{
+				perror("error escritura dbTmp");
+				exit(-1);
+			}
+		} 
+		else if( i == id2 ){
+			check = fwrite ( tmp2, sizeof( struct dogType ), 1, dbTmp );
+			if (check==0)
+			{
+				perror("error escritura dbTmp");
+				exit(-1);
+			}	
+		}
+		else if( i == registerId ){
+			check = fwrite ( mascotaFinal, sizeof( struct dogType ), 1, dbTmp );
+			if (check==0)
+			{
+				perror("error escritura dbTmp");
+				exit(-1);
+			}
+		} 
 		else
 		{
 			getMascota( i, mascotaDelete );
-			fwrite( mascotaDelete, sizeof ( struct dogType ), 1, dbTmp ); 
+			check  = fwrite( mascotaDelete, sizeof ( struct dogType ), 1, dbTmp ); 
+			if (check==0)
+			{
+				perror("error escritura dbTmp");
+				exit(-1);
+			}
 		}
 	}
 	fclose(dbTmp); 
@@ -381,6 +411,11 @@ void deletePet()
 		perror( "Error en el renombramiento de la base de datos" );
 		exit( -1 );
 	}
+
+	free(mascotaFinal);
+	free(mascotaDelete);
+	free(tmp);
+	free(tmp2);
 
 	printf("\nLa mascota ha sido eliminada, presione ENTER para continuar");
 	char end;
@@ -429,6 +464,8 @@ void searchPet()
 			imprimirMascota( mascota );	
 		currId = mascota -> idPrev;
 	}
+
+	free(mascota);
 
 	printf("\nBusqueda finalizada presione enter para continuar");
 	char end;
