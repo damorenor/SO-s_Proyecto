@@ -138,7 +138,7 @@ void enterPet(){
 
 	saveDog( mascota );
 
-	printf("\nse guardó su mascota... Presione ENTER:");
+	printf("\nse guardó su mascota ingrese un caracter para continuar");
 	char end;
 	scanf("%s",&end);
 	
@@ -185,7 +185,7 @@ void seePet(){
 	system(hcFile);
 
 	free(mascota);
-	printf("\ncambios en la historia clinica realizados... Presione ENTER:");
+	printf("\ncambios en la historia clinica realizados ingrese un caracter para continuar");
 	char end;
 	scanf("%s",&end);
 }
@@ -417,7 +417,7 @@ void deletePet()
 	free(tmp);
 	free(tmp2);
 
-	printf("\nLa mascota ha sido eliminada, presione ENTER para continuar");
+	printf("\nLa mascota ha sido eliminada, ingrese un caracter continuar");
 	char end;
 	scanf("%s",&end);
 }
@@ -434,7 +434,7 @@ void searchPet()
 	scanf("%s", buff );
 	printf("\n");
 	
-	int hash, currId, i, equal;
+	int hash, currId, i, equal, a, b;
 	hash = getHash( buff );
 	
 	currId = lastID[hash];
@@ -449,25 +449,33 @@ void searchPet()
 	
 	while( currId != -1 )
 	{
-		printf("%d %d\n", currId, countRegisters());
 		getMascota( currId, mascota );
-		printf("%d %d\n", hash, getHash(mascota->nombre) );
-		
+	
+
 		equal = 1;
-		for( i = 0; i < NOMBRE_SIZE; ++ i )
+
+		for( i = 0; i < NOMBRE_SIZE; ++i )
 		{
-			if( mascota->nombre[i] != buff[i] ) // hay que cambiarlo
-				equal = 0;
-		}	
+
+			a = (int) mascota->nombre[i];
+        	        b = (int) buff[i];
+			if( a >= 'A' && a <= 'Z' ) a = 'a' + ( a - 'A' );
+                	if( b >= 'A' && b <= 'Z' ) b = 'a' + ( b - 'A' );
 		
+                	if( a != b ) 
+                		equal = 0;
+		}
 		if( equal )
+		{
+			printf("%d\n", currId );
 			imprimirMascota( mascota );	
+		}
 		currId = mascota -> idPrev;
 	}
 
 	free(mascota);
 
-	printf("\nBusqueda finalizada presione enter para continuar");
+	printf("\nBusqueda finalizada ingrese un caracter para continuar");
 	char end;
 	scanf("%s",&end);
 }
@@ -571,19 +579,22 @@ void saveDog ( void *ap )
 
 int getHash( unsigned char * nombre )
 {
-	int hash, base, i;
+        int hash, base, i, auxC;
 
-	for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
-	{
-		hash += ( nombre[i] ) * base;
+        for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
+        {
+                auxC = (int) nombre[i];
+                if( auxC >= 'A' && auxC <= 'Z' ) auxC = 'a' + ( auxC - 'A' );
 
-		base *= MOD;
-		base %= HASH_SIZE;
+                hash += auxC * base;
 
-		hash %= HASH_SIZE;
-	}
+                base *= MOD;
+                base %= HASH_SIZE;
 
-	return hash;
+                hash %= HASH_SIZE;
+        }
+
+        return hash;
 }
 
 

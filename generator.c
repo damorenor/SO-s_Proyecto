@@ -215,20 +215,24 @@ void breedArrayGenerator(){
 
 int getHash( unsigned char * nombre )
 {
-	int hash, base, i;
+        int hash, base, i, auxC;
 
-	for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
-	{
-		hash += ( nombre[i] ) * base;
+        for( i = 0, hash = 0, base = 1; i < NOMBRE_SIZE; ++ i )
+        {
+                auxC = (int) nombre[i];
+                if( auxC >= 'A' && auxC <= 'Z' ) auxC = 'a' + ( auxC - 'A' );
 
-		base *= MOD;
-		base %= HASH_SIZE;
+                hash += auxC * base;
 
-		hash %= HASH_SIZE;
-	}
+                base *= MOD;
+                base %= HASH_SIZE;
 
-	return hash;
+                hash %= HASH_SIZE;
+        }
+
+        return hash;
 }
+
 
 void saveDog ( void *ap )
 {
