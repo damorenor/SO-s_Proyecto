@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
 	       		       
 #define REGISTER_SIZE ( (int) 1e7 ) 
 #define NOMBRE_SIZE 32
@@ -38,11 +39,12 @@ void seePet();
 void deletePet();
 void searchPet();
 
-int CountRegisters();
+int countRegisters();
 void saveDog();
 int getHash();
 void getMascota();
 void imprimirMascota();
+void generateHc();
 
 int * lastID;
 FILE *f;
@@ -131,7 +133,7 @@ void enterPet(){
 
 	int hash = getHash( mascota -> nombre );
 	mascota -> idPrev = lastID[hash];
-	lastID[hash] = CountRegisters();
+	lastID[hash] = countRegisters();
 
 	saveDog( mascota );
 
@@ -143,10 +145,46 @@ void enterPet(){
 }
 
 
-void seePet()
-{
+void seePet(){
+	system("clear");
+	printf("Numero de perros registrados: ");
+	printf("%d\n\n", countRegisters());
 
+	printf("Ingrese el id de la mascota que desea ver:\n");
+	int registerId;
+	scanf("%d",&registerId);
+	registerId--;
 
+	struct dogType * mascota;
+	mascota = ( struct  dogType *) malloc( sizeof ( struct dogType ) );	
+	if( mascota == NULL )
+	{
+		perror("error en el malloc de la mascota");
+		exit( -1 );
+	}
+	getMascota(registerId, mascota);
+	imprimirMascota(mascota);
+
+	unsigned char hcName [20];//hc stands for historia clílica
+	memset( hcName,0, sizeof (hcName));
+	unsigned char hcFile [20];
+	memset( hcFile,0, sizeof (hcFile));
+
+	sprintf(hcName, "%d", registerId);
+	strcat(hcName,"hc");
+	strcat(hcName,".txt");
+
+	strcat(hcFile,"gedit ");
+	strcat(hcFile, hcName);
+
+	if( access( hcName, F_OK ) == -1 ) {
+		generateHc(hcName, mascota);
+	}	
+
+	system(hcFile);
+	printf("\ncambios en la historia clinica realizados... Presione ENTER:");
+	char end;
+	scanf("%s",&end);
 }
 
 
@@ -243,7 +281,7 @@ void getMascota( int idx, struct dogType * mascota )
 }
 
 
-int CountRegisters(){
+int countRegisters(){
 	FILE *g;
 	int  check, size;
 	g = fopen("dataDogs.dat","r");
@@ -369,3 +407,50 @@ void saveHeads(){
 }
 
 
+void generateHc(char* hcName, struct dogType* mascota){
+	FILE *hc = fopen(hcName,"w+");
+	int check;
+	check = fprintf(hc,"NOMBRE: %s\n", mascota->nombre);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"TIPO: %s\n", mascota->tipo);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"EDAD: %d\n", mascota->edad);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"RAZA: %s\n", mascota->raza);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"ESTATURA: %d\n", mascota->estatura);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"PESO: %f\n", mascota->peso);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+	check = fprintf(hc,"SEXO: %s\n", &mascota->sexo);
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+
+	check = fprintf(hc,"Historia clinica: \n");
+	if (check < 0){
+		perror("error generando historia clinica");
+		exit(-1);
+	}
+
+	fclose(hc);
+}
